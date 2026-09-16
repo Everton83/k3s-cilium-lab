@@ -1,0 +1,12 @@
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: first-pool
+spec:
+  blocks:
+    - start: 192.168.3.201
+      stop: 192.168.3.210
+  disabled: false
+# Current allocations:
+#   192.168.3.201 -> kube-system/clustermesh-apiserver
+#   192.168.3.202 -> ministack/ministack

@@ -1,0 +1,6 @@
+# /etc/rancher/k3s/config.yaml on batata-server
+# Combined with the flags in the systemd unit:
+#   --flannel-backend=none --disable-network-policy --disable=traefik --disable-kube-proxy
+# servicelb (klipper) disabled here so it stops racing Cilium LB-IPAM for LoadBalancer IPs.
+disable:
+  - servicelb

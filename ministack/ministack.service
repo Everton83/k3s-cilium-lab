@@ -1,0 +1,18 @@
+# Installed at /etc/systemd/system/ministack.service.
+# Replace `batata` below with whichever local user should own the process
+# (its pipx install and persisted state directory both key off $HOME).
+[Unit]
+Description=MiniStack local AWS emulator
+After=network-online.target
+
+[Service]
+User=batata
+Environment=GATEWAY_PORT=4566
+Environment=PERSIST_STATE=1
+Environment=MINISTACK_REGION=us-east-1
+ExecStart=/home/batata/.local/bin/ministack
+Restart=on-failure
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target

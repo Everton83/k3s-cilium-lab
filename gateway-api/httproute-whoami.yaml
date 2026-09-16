@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: whoami
+  namespace: default
+spec:
+  # Explicit hostname is required: with none, this route attaches to and
+  # matches on EVERY listener on my-gateway (a Gateway-wide catch-all) since
+  # parentRefs below has no sectionName either — it hijacked ArgoCD's own
+  # hostname on the https-argocd listener until this was added. See
+  # ../README.md's sequencing rules for the same gotcha stated generally.
+  hostnames:
+    - whoami.192.168.3.200.nip.io
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: my-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - kind: Service
+          name: whoami
+          port: 80

@@ -1,0 +1,83 @@
+# ArgoCD values for batata-server (192.168.3.200, k3s single-node)
+#
+# Repo:    helm repo add argo https://argoproj.github.io/argo-helm
+# Chart:   argo/argo-cd  10.9.0  (app version v3.5.2)
+# Release: helm install argocd argo/argo-cd -n argocd --create-namespace -f values-batata.yaml
+#
+# Trimmed for a memory-constrained host (3.3Gi total RAM, shared with the
+# rest of the batata-server stack — see ../README.md):
+#   - dex, notifications and applicationset disabled (no SSO / notifications
+#     / ApplicationSets in use today — flip back to true if that changes)
+#   - resource requests/limits set well below chart defaults
+#
+# NOTE (2026-09-11): applicationSet.enabled: false did NOT stop the
+# argocd-applicationset-controller pod from being deployed on chart 10.9.0 —
+# it came up running anyway. Left as-is (low footprint), but worth checking
+# the chart's values.yaml/templates if that matters later.
+#
+# Exposed via Gateway API at https://argocd.192.168.3.200.nip.io — TLS is
+# terminated at the Gateway (my-gateway/default, listener "https-argocd",
+# cert secret argocd/argocd-tls, self-signed), so server.insecure is set
+# below (same reasoning as the chart's own NOTES.txt: terminate SSL at your
+# ingress and let argocd-server speak plain HTTP behind it). See
+# ../gateway-api/ for the Gateway + HTTPRoute manifests this depends on.
+
+configs:
+  params:
+    server.insecure: true
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+applicationSet:
+  enabled: false
+  # enabled:false above doesn't actually stop this controller from being
+  # deployed on chart 10.9.0 (see note above) — give it a resource ceiling
+  # too so it's accounted for in the host's memory budget instead of running
+  # unbounded.
+  resources:
+    requests:
+      cpu: 15m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+controller:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 384Mi
+
+server:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 384Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 96Mi
