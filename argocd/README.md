@@ -1,11 +1,11 @@
 # ArgoCD
 
-GitOps controller for the cluster. Not yet managing any custom Applications
-on batata-server as of this writing (a same-day observability rollout was
-tried and rolled back — see the Ledger's incident log) — it's live and
-healthy, just empty.
+Controlador GitOps do cluster. Até o momento, não gerencia nenhuma
+Application customizada no batata-server (um rollout de observabilidade
+foi tentado e revertido no mesmo dia — ver o log de incidentes em
+`../README.md`) — está ativo e saudável, só que vazio.
 
-## Install
+## Instalação
 
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
@@ -14,19 +14,19 @@ helm install argocd argo/argo-cd \
   -f values-batata.yaml
 ```
 
-Requires `../gateway-api/gateway-my-gateway.yaml` and its `argocd-tls`
-Secret applied first (Gateway API CRDs come from the Cilium chart, see
-`../cilium/`) — `server.insecure: true` in `values-batata.yaml` assumes TLS
-terminates at that Gateway, not at argocd-server itself.
+Requer `../gateway-api/gateway-my-gateway.yaml` e seu Secret `argocd-tls`
+já aplicados antes (os CRDs de Gateway API vêm do chart do Cilium, ver
+`../cilium/`) — `server.insecure: true` em `values-batata.yaml` assume
+que o TLS termina naquele Gateway, não no próprio `argocd-server`.
 
-## Set the admin password
+## Configurando a senha de admin
 
-Don't `helm install --set` a plaintext password into shell history or a
-committed file. Patch the bcrypt hash directly into the release's own
-secret instead:
+Não faça `helm install --set` com senha em texto plano no histórico do
+shell ou num arquivo versionado. Em vez disso, faça o patch do hash
+bcrypt diretamente no Secret do próprio release:
 
 ```bash
-NEWPASS='choose-one'
+NEWPASS='escolha-uma-senha'
 HASH=$(python3 -c "
 import bcrypt, sys
 print(bcrypt.hashpw(sys.stdin.readline().rstrip().encode(), bcrypt.gensalt(rounds=10)).decode())
@@ -36,8 +36,8 @@ kubectl -n argocd patch secret argocd-secret -p \
   "{\"stringData\": {\"admin.password\": \"$HASH\", \"admin.passwordMtime\": \"$MTIME\"}}"
 ```
 
-Verify without going through the CLI (useful if the `argocd` CLI itself is
-misbehaving — see the gotcha below):
+Verifique sem passar pelo CLI (útil se o próprio CLI `argocd` estiver com
+problema — ver a pegadinha abaixo):
 
 ```bash
 curl -sk --resolve argocd.192.168.3.200.nip.io:443:192.168.3.200 \
@@ -45,17 +45,17 @@ curl -sk --resolve argocd.192.168.3.200.nip.io:443:192.168.3.200 \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"admin\",\"password\":\"$NEWPASS\"}"
 ```
-A 200 with a JWT `token` in the body means the login the web UI would do
-actually works.
+Um 200 com um `token` JWT no corpo confirma que o login que a interface
+web faria de fato funciona.
 
-## Gotcha: the `argocd` CLI vs this Gateway
+## Pegadinha: o CLI `argocd` contra este Gateway
 
-`argocd login argocd.192.168.3.200.nip.io` can fail with a TLS/ALPN error
-through Cilium's Envoy Gateway, independent of whether the login itself is
-valid (confirmed above via curl). Two working alternatives instead of
-fighting the CLI's native-gRPC path:
+`argocd login argocd.192.168.3.200.nip.io` pode falhar com um erro de
+TLS/ALPN através do Envoy Gateway do Cilium, independente de o login em
+si ser válido (confirmado acima via curl). Duas alternativas que
+funcionam em vez de brigar com o caminho gRPC nativo do CLI:
 
-- `argocd login --core --kube-context <your-context>` — talks to the
-  Kubernetes API directly via your kubeconfig, skips the Gateway entirely.
-- `--grpc-web --skip-test-tls` flags on a normal `argocd login`, if you
-  need the full CLI (not just `--core` mode).
+- `argocd login --core --kube-context <seu-contexto>` — fala direto com a
+  API do Kubernetes via seu kubeconfig, pulando o Gateway inteiramente.
+- Flags `--grpc-web --skip-test-tls` num `argocd login` normal, se
+  precisar do CLI completo (não só do modo `--core`).

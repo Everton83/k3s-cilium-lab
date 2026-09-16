@@ -1,49 +1,51 @@
 # GitLab Runner
 
-Native, host-level CI/CD executor — not a k3s workload. A runner's
-resource use is bursty and unpredictable (a `terraform apply` alone spikes
-~270–350Mi RSS), exactly what already destabilized this box once when
-stacked with other work; see the Ledger's incident log.
+Executor de CI/CD nativo, em nível de host — não é um workload do k3s. O
+consumo de recurso de um runner é imprevisível e cheio de picos (um
+`terraform apply` sozinho gera picos de ~270-350Mi de RSS), exatamente o
+tipo de carga que já desestabilizou este host antes quando empilhada com
+outras coisas; ver o log de incidentes em `../README.md`.
 
-## Install
+## Instalação
 
 ```bash
-./install.sh https://gitlab.com glrt-xxxxxxxxxxxxxxxxxxxx "my-server (native, host shell executor)"
+./install.sh https://gitlab.com glrt-xxxxxxxxxxxxxxxxxxxx "meu-servidor (nativo, host, executor shell)"
 ```
 
-The token is a **runner authentication token** (`glrt-...`) from the
-target project's **Settings > CI/CD > Runners > New project runner** page
-— not the old shared registration-token flow, which newer GitLab versions
-reject.
+O token é um **runner authentication token** (`glrt-...`) obtido na
+página **Settings > CI/CD > Runners > New project runner** do projeto
+alvo — não é o fluxo antigo de registration-token compartilhado, que
+versões recentes do GitLab rejeitam.
 
-## Gotcha this script already works around
+## Pegadinha que este script já resolve
 
-Every job run through the shell executor executes as a **login shell**
-(`bash -l`). Two things about that broke every single job here with the
-same opaque error, independent of the job's own content:
+Todo job rodado pelo executor `shell` executa como um **shell de login**
+(`bash -l`). Duas coisas sobre isso quebraram todo job aqui com o mesmo
+erro sem informação nenhuma, independente do conteúdo do job:
 
-1. **The runner's own Linux user needs a real shell.** `/usr/sbin/nologin`
-   (a sensible default for most service accounts) makes every job fail
-   instantly.
-2. **`~/.bash_logout` runs when that login shell exits.** Ubuntu's default
-   one calls `clear_console -q` to blank the screen "for privacy" — which
-   fails with no controlling TTY (always true in CI), and *that* exit
-   code becomes the whole job's exit code. `install.sh` patches this one
-   line for the `gitlab-runner` user only, not `/etc/skel` or anyone
-   else's shell.
+1. **O usuário Linux do próprio runner precisa de um shell de verdade.**
+   `/usr/sbin/nologin` (um padrão sensato pra maioria das contas de
+   serviço) faz todo job falhar instantaneamente.
+2. **`~/.bash_logout` roda quando esse shell de login termina.** O padrão
+   do Ubuntu chama `clear_console -q` pra limpar a tela "por
+   privacidade" — o que falha sem um terminal controlador (sempre o caso
+   em CI), e *esse* código de saída vira o código de saída do job
+   inteiro. O `install.sh` já corrige essa linha só pro usuário
+   `gitlab-runner`, sem tocar em `/etc/skel` nem em nenhum outro shell.
 
-Both show up identically: `ERROR: Job failed: prepare environment: exit
-status 1`, duration effectively zero, with GitLab Runner never surfacing
-the real cause in its own logs at any log level — including a completely
-minimal `echo hi` job. If you hit this on a *different* host than the one
-this repo was built for, `strace -f -p <gitlab-runner-pid>` while
-retriggering a job is the fastest way to confirm it's the same thing
-rather than a new bug.
+Os dois problemas se manifestam de forma idêntica: `ERROR: Job failed:
+prepare environment: exit status 1`, com duração efetivamente zero, e o
+GitLab Runner nunca expõe a causa real em nenhum log, nem em nível
+debug — inclusive num job totalmente mínimo tipo `echo hi`. Se isso
+acontecer num host diferente deste, `strace -f -p <pid-do-gitlab-runner>`
+enquanto dispara um job novo é o jeito mais rápido de confirmar se é o
+mesmo problema ou um bug novo.
 
-## Verify
+## Verificação
 
 ```bash
 sudo systemctl status gitlab-runner
 ```
-Then push a trivial commit to a project this runner is registered for and
-watch `sudo journalctl -u gitlab-runner -f` for `Job succeeded`.
+Depois faça um commit trivial num projeto onde esse runner está
+registrado e acompanhe `sudo journalctl -u gitlab-runner -f` até aparecer
+`Job succeeded`.

@@ -1,31 +1,31 @@
 # MiniStack
 
-Local AWS emulator (github.com/ministackorg/ministack). Runs on the host,
-not in k3s — see the Ledger's "What lives on the host" section for why.
-S3, DynamoDB, SQS and 60+ other services run in-process without needing a
-Docker socket; the heavier stateful ones (RDS, ECS) need Docker and aren't
-in use here.
+Emulador local de AWS (github.com/ministackorg/ministack). Roda no host,
+não no k3s — ver a seção "Visão geral da arquitetura" em `../README.md`
+pra entender o porquê. S3, DynamoDB, SQS e mais de 60 outros serviços
+rodam em processo, sem precisar de socket do Docker; os mais pesados com
+estado real (RDS, ECS) precisam de Docker e não estão em uso aqui.
 
-## Install
+## Instalação
 
 ```bash
 ./install.sh
 ```
 
-Edit `ministack.service` first if the target user isn't `batata` — `User=`
-and `ExecStart=` both need to change together (pipx installs to
+Edite `ministack.service` antes se o usuário alvo não for `batata` —
+`User=` e `ExecStart=` precisam mudar juntos (o `pipx` instala em
 `$HOME/.local/bin`).
 
-## Verify
+## Verificação
 
 ```bash
-curl http://<host-ip>:4566/_ministack/health
+curl http://<ip-do-host>:4566/_ministack/health
 ```
-Returns a JSON map of service name → `"available"`.
+Retorna um mapa JSON de nome do serviço → `"available"`.
 
-## Using it
+## Como usar
 
-Point any Terraform `aws` provider block at it:
+Aponte qualquer bloco `provider "aws"` do Terraform pra ele:
 
 ```hcl
 provider "aws" {
@@ -39,11 +39,11 @@ provider "aws" {
   skip_requesting_account_id  = true
 
   endpoints {
-    s3       = "http://<host-ip>:4566"
-    dynamodb = "http://<host-ip>:4566"
-    sqs      = "http://<host-ip>:4566"
-    # add any other service you're using -- see the health endpoint above
-    # for the full list MiniStack emulates
+    s3       = "http://<ip-do-host>:4566"
+    dynamodb = "http://<ip-do-host>:4566"
+    sqs      = "http://<ip-do-host>:4566"
+    # adicione qualquer outro serviço que for usar -- ver o endpoint de
+    # health acima pra lista completa do que o MiniStack emula
   }
 }
 ```
