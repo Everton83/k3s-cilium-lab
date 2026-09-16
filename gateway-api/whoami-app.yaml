@@ -1,4 +1,4 @@
-# Test backend behind my-gateway (validates end-to-end: http://192.168.3.200/ -> 200)
+# Backend de teste atrás do my-gateway (valida ponta a ponta: http://192.168.3.200/ -> 200)
 apiVersion: apps/v1
 kind: Deployment
 metadata:

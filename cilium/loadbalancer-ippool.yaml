@@ -7,6 +7,7 @@ spec:
     - start: 192.168.3.201
       stop: 192.168.3.210
   disabled: false
-# Current allocations:
-#   192.168.3.201 -> kube-system/clustermesh-apiserver
-#   192.168.3.202 -> ministack/ministack
+# Nenhuma alocação ativa no momento: .201 era do clustermesh-apiserver
+# (ClusterMesh foi desativado, ver values.yaml) e .202 era do MiniStack
+# (movido pra fora do cluster, ver ../ministack/). O pool inteiro está livre
+# pra qualquer Service do tipo LoadBalancer novo.

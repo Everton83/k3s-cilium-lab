@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Gateway API CRDs required by Cilium 1.20 (standard channel, v1.6.1).
-# The cluster originally shipped v1.1.0 which is too old — the cilium-operator
-# refused to start the Gateway controller until these were applied.
+# CRDs de Gateway API exigidos pelo Cilium 1.20 (canal standard, v1.6.1).
+# O cluster originalmente vinha com a v1.1.0, que é antiga demais — o
+# cilium-operator se recusava a iniciar o controlador do Gateway até esses
+# CRDs serem aplicados.
 #
-# Run BEFORE (or right after) enabling gatewayAPI in the Cilium Helm release,
-# then restart the operator:  kubectl -n kube-system rollout restart deploy/cilium-operator
+# Rode ANTES (ou logo depois) de habilitar o gatewayAPI no release Helm do
+# Cilium, depois reinicie o operator:
+#   kubectl -n kube-system rollout restart deploy/cilium-operator
 set -euo pipefail
 
 GAPI_VERSION="v1.6.1"

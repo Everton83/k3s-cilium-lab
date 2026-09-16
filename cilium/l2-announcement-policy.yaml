@@ -4,5 +4,5 @@ metadata:
   name: l2-policy
 spec:
   loadBalancerIPs: true
-  # No nodeSelector / interfaces / serviceSelector => matches every LB service on
-  # every node/interface. Fine for this single-node cluster.
+  # Sem nodeSelector / interfaces / serviceSelector => casa com todo Service
+  # do tipo LB em todo node/interface. Tranquilo pra este cluster single-node.

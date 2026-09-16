@@ -1,7 +1,7 @@
-# Installed at /etc/systemd/system/gitlab-runner.service.
-# Runs the whole daemon as the gitlab-runner user (not root) -- with the
-# shell executor there's no privilege boundary to preserve by running it
-# as root and su-ing into a build user per job, so don't bother.
+# Instalado em /etc/systemd/system/gitlab-runner.service.
+# Roda o daemon inteiro como o usuário gitlab-runner (não root) -- com o
+# executor shell não existe fronteira de privilégio a preservar rodando como
+# root e dando su pra um usuário de build por job, então não vale a pena.
 [Unit]
 Description=GitLab Runner
 ConditionFileIsExecutable=/usr/local/bin/gitlab-runner

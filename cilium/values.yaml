@@ -1,16 +1,17 @@
-# Cilium Helm values — release "cilium" in namespace kube-system (chart cilium-1.20.1)
-# Applied on batata-server (k3s single-node, 192.168.3.200).
-# Reproduce with:  helm upgrade --install cilium cilium/cilium -n kube-system \
+# Values do Helm do Cilium — release "cilium" no namespace kube-system (chart cilium-1.20.1)
+# Aplicado no batata-server (k3s single-node, 192.168.3.200).
+# Reproduzir com:  helm upgrade --install cilium cilium/cilium -n kube-system \
 #                    --version 1.20.1 -f values.yaml
 #
-# NOTE: `loadBalancer.l2.enabled` below is NOT a real chart key (no-op) — it was
-#       left as originally applied. The key that actually enables L2 is
-#       `l2announcements.enabled` (set to true further down).
+# NOTA: `loadBalancer.l2.enabled` abaixo NÃO é uma chave real do chart (no-op)
+#       — foi deixada como aplicada originalmente. A chave que de fato habilita
+#       o L2 é `l2announcements.enabled` (definida como true mais abaixo).
 #
-# resources: blocks added 2026-09-11, sized off observed steady-state RSS,
-# part of fitting the whole batata-server stack in a ~3GB budget after a
-# swap-thrashing incident (see ../README.md's incident log). Verify with
-# `helm upgrade --dry-run` before applying — this chart controls the CNI.
+# blocos de resources: adicionados em 2026-09-11, dimensionados com base no
+# RSS real observado em regime permanente (ver README.md), parte do esforço
+# de encaixar toda a stack do batata-server num orçamento de ~3GB depois de
+# um incidente de swap-thrashing. Valide com `helm upgrade --dry-run` antes
+# de aplicar — este chart controla o CNI.
 
 k8sServiceHost: 192.168.3.200
 k8sServicePort: 6443
@@ -29,14 +30,14 @@ operator:
 tolerations:
   - operator: Exists
 
-# --- Gateway API (host-network mode: Envoy binds the listener port on the node IP) ---
+# --- Gateway API (modo host-network: o Envoy liga a porta do listener no IP do node) ---
 gatewayAPI:
   enabled: true
   hostNetwork:
     enabled: true
 
-# Envoy (external DaemonSet) needs NET_BIND_SERVICE to bind privileged port 80 on the host.
-# Both of these are required together.
+# O Envoy (DaemonSet externo) precisa de NET_BIND_SERVICE pra ligar a porta
+# privilegiada 80 no host. As duas capabilities abaixo são exigidas juntas.
 envoy:
   securityContext:
     capabilities:
@@ -65,7 +66,7 @@ securityContext:
       - IPC_LOCK
       - NET_BIND_SERVICE
 
-# cilium-agent itself (the DaemonSet's main container).
+# O cilium-agent em si (container principal do DaemonSet).
 resources:
   requests:
     cpu: 100m
@@ -74,7 +75,7 @@ resources:
     cpu: 500m
     memory: 256Mi
 
-# --- LoadBalancer: L2 announcements + LB-IPAM (pool defined in loadbalancer-ippool.yaml) ---
+# --- LoadBalancer: L2 announcements + LB-IPAM (pool definido em loadbalancer-ippool.yaml) ---
 l2announcements:
   enabled: true
   leaseDuration: 15s
@@ -83,7 +84,7 @@ l2announcements:
 
 loadBalancer:
   l2:
-    enabled: true   # no-op key (see note at top)
+    enabled: true   # chave no-op (ver nota no topo)
 
 k8sClientRateLimit:
   qps: 50
@@ -95,20 +96,21 @@ hubble:
   relay:
     enabled: true
 
-# --- ClusterMesh: DISABLED 2026-09-11 ---
-# Was enabled 2026-09-10 but never actually peered with anything (always
-# 0/0 remote clusters) — 3 always-on containers (etcd, apiserver,
-# kvstoremesh) for a feature doing nothing. This box hit real swap-thrashing
-# 3 times in one session running the full stack; unlike resource limits
-# (which only cap the ceiling), turning this off frees memory for real.
-# cluster.id/name are harmless to keep (cheap identity metadata, no running
-# component), left in case clustermesh gets re-enabled later.
+# --- ClusterMesh: DESATIVADO em 2026-09-11 ---
+# Foi habilitado em 2026-09-10 mas nunca chegou a parear com nada de verdade
+# (sempre "0/0 remote clusters") — 3 containers sempre ativos (etcd,
+# apiserver, kvstoremesh) por uma funcionalidade que não fazia nada. Este
+# host teve thrashing de swap real 3 vezes numa única sessão rodando a stack
+# inteira; diferente de limites de recurso (que só limitam o teto), desligar
+# isso libera memória de verdade. cluster.id/name são inofensivos de manter
+# (metadado de identidade barato, sem componente rodando), deixados caso o
+# clustermesh seja reabilitado depois.
 #
-# To re-enable: set clustermesh.useAPIServer: true and restore the
-# clustermesh.config/apiserver block from git history (this file, prior to
-# this commit) — apiserver.service.type: LoadBalancer, kvstoremesh.enabled:
-# true, tls.auto.enabled: true, config.enabled: true (required, or
-# clustermesh-apiserver hangs in Init on FailedMount).
+# Para reabilitar: definir clustermesh.useAPIServer: true e restaurar o bloco
+# clustermesh.config/apiserver do histórico do git (este arquivo, antes deste
+# commit) — apiserver.service.type: LoadBalancer, kvstoremesh.enabled: true,
+# tls.auto.enabled: true, config.enabled: true (obrigatório, senão o
+# clustermesh-apiserver trava em Init com FailedMount).
 cluster:
   id: 1
   name: batata

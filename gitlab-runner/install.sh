@@ -1,41 +1,42 @@
 #!/usr/bin/env bash
-# Installs a native GitLab Runner (shell executor) as a host service --
-# deliberately NOT a k3s workload. See ../README.md: a CI runner's resource
-# use is bursty and unpredictable, exactly what a memory-tight cluster
-# can't absorb.
+# Instala um GitLab Runner nativo (executor shell) como serviço do host --
+# deliberadamente NÃO um workload do k3s. Ver ../README.md: o consumo de
+# recurso de um runner de CI é cheio de picos e imprevisível, exatamente o
+# que um cluster com memória apertada não consegue absorver.
 #
-# Usage: ./install.sh <gitlab-url> <runner-auth-token> [description]
-#   <runner-auth-token> is the glrt-... token from the project's
-#   Settings > CI/CD > Runners > "New project runner" page, NOT the old
-#   shared registration-token flow.
+# Uso: ./install.sh <url-do-gitlab> <token-de-autenticacao-do-runner> [descricao]
+#   <token-de-autenticacao-do-runner> é o token glrt-... da página
+#   Settings > CI/CD > Runners > "New project runner" do projeto, NÃO o
+#   fluxo antigo de registration-token compartilhado.
 set -euo pipefail
 
-GITLAB_URL="${1:?usage: install.sh <gitlab-url> <runner-token> [description]}"
-RUNNER_TOKEN="${2:?usage: install.sh <gitlab-url> <runner-token> [description]}"
-DESCRIPTION="${3:-$(hostname) (native, host shell executor)}"
+GITLAB_URL="${1:?uso: install.sh <url-do-gitlab> <token-do-runner> [descricao]}"
+RUNNER_TOKEN="${2:?uso: install.sh <url-do-gitlab> <token-do-runner> [descricao]}"
+DESCRIPTION="${3:-$(hostname) (nativo, executor shell no host)}"
 
 sudo curl -fsSL -o /usr/local/bin/gitlab-runner \
   "https://gitlab-runner-downloads.s3.amazonaws.com/v17.11.0/binaries/gitlab-runner-linux-amd64"
 sudo chmod +x /usr/local/bin/gitlab-runner
 
-# Pinned to v17.11.0 rather than latest: a same-day repro against 19.3.3
-# showed identical failures for the real bug this script also fixes below
-# (it's unrelated to the runner version), so the pin is just "known good,"
-# not load-bearing -- revisit if there's a reason to.
+# Fixado em v17.11.0 em vez da última versão: uma reprodução no mesmo dia
+# contra a 19.3.3 mostrou falhas idênticas pro bug real que este script
+# também corrige abaixo (não tem relação com a versão do runner), então a
+# fixação é só "sabidamente funcional", não é algo essencial -- revisitar
+# se houver motivo.
 
 if ! id gitlab-runner &>/dev/null; then
-  # Needs a REAL login shell. The shell executor runs every job through
-  # `bash -l`, so /usr/sbin/nologin here breaks every single job with an
-  # opaque "prepare environment: exit status 1" -- see the fix below for
-  # the other half of this same class of bug.
+  # Precisa de um shell de login DE VERDADE. O executor shell roda todo job
+  # através de `bash -l`, então /usr/sbin/nologin aqui quebra todo job com um
+  # "prepare environment: exit status 1" sem informação nenhuma -- ver a
+  # correção abaixo pra a outra metade desta mesma classe de bug.
   sudo useradd --system --shell /bin/bash --home-dir /home/gitlab-runner --create-home gitlab-runner
 fi
 
-# The other half: Ubuntu's default ~/.bash_logout calls `clear_console -q`
-# on every login-shell exit to blank the screen "for privacy." With no
-# controlling TTY (always true in CI), clear_console exits 1, and THAT
-# becomes the whole job's exit code -- independent of anything the job
-# itself did. Scoped to this user only, not /etc/skel.
+# A outra metade: o ~/.bash_logout padrão do Ubuntu chama `clear_console -q`
+# em toda saída de shell de login pra limpar a tela "por privacidade". Sem
+# um terminal controlador (sempre o caso em CI), o clear_console sai com
+# código 1, e ESSE código vira o exit code do job inteiro -- independente do
+# que o job em si fez. Corrigido só pra este usuário, não pro /etc/skel.
 sudo -u gitlab-runner sed -i \
   's#\[ -x /usr/bin/clear_console \] && /usr/bin/clear_console -q$#[ -x /usr/bin/clear_console ] \&\& /usr/bin/clear_console -q || true#' \
   /home/gitlab-runner/.bash_logout

@@ -11,8 +11,9 @@ spec:
       protocol: HTTP
       allowedRoutes:
         namespaces:
-          # `All` so workloads in their own namespaces (e.g. ns `argocd`) can
-          # attach an HTTPRoute to this shared gateway. Was `Same` (default ns only).
+          # `All` pra que workloads em seus próprios namespaces (ex.: ns
+          # `argocd`) possam anexar um HTTPRoute a este gateway compartilhado.
+          # Era `Same` (só o namespace default).
           from: All
     - name: https-argocd
       hostname: argocd.192.168.3.200.nip.io
@@ -20,18 +21,20 @@ spec:
       protocol: HTTPS
       tls:
         mode: Terminate
-        # Self-signed cert for argocd.192.168.3.200.nip.io, SNI-selected.
+        # Certificado self-signed para argocd.192.168.3.200.nip.io, selecionado por SNI.
         certificateRefs:
           - kind: Secret
             name: argocd-tls
       allowedRoutes:
         namespaces:
           from: All
-    # Add one hostname-scoped listener like https-argocd per app you expose —
-    # do NOT add a hostname-less "https" catch-all listener. One existed here
-    # for Backstage (removed) and silently caught every HTTPS request to
-    # every OTHER hostname too, since a listener with no `hostname` matches
-    # any SNI. See gateway.networking.k8s.io semantics + httproute-whoami.yaml's
-    # comment for the same gotcha from the HTTPRoute side.
-# With Cilium gatewayAPI.hostNetwork.enabled=true, Envoy binds :80 and :443 on the
-# node IP. http://192.168.3.200/ and https://192.168.3.200/ . Service is NodePort.
+    # Adicione um listener escopado por hostname como o https-argocd pra cada
+    # app que expuser — NÃO adicione um listener "https" catch-all sem
+    # hostname. Um listener assim existia aqui pro Backstage (removido) e
+    # capturava silenciosamente toda requisição HTTPS de QUALQUER outro
+    # hostname também, já que um listener sem `hostname` casa com qualquer
+    # SNI. Ver a semântica do gateway.networking.k8s.io + o comentário do
+    # httproute-whoami.yaml pra a mesma pegadinha do lado do HTTPRoute.
+# Com gatewayAPI.hostNetwork.enabled=true no Cilium, o Envoy liga as portas
+# :80 e :443 diretamente no IP do node. http://192.168.3.200/ e
+# https://192.168.3.200/ . O Service vira NodePort.

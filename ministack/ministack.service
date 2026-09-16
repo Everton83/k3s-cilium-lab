@@ -1,8 +1,9 @@
-# Installed at /etc/systemd/system/ministack.service.
-# Replace `batata` below with whichever local user should own the process
-# (its pipx install and persisted state directory both key off $HOME).
+# Instalado em /etc/systemd/system/ministack.service.
+# Troque `batata` abaixo pelo usuário local que deve ser dono do processo
+# (tanto a instalação via pipx quanto o diretório de estado persistido
+# dependem de $HOME).
 [Unit]
-Description=MiniStack local AWS emulator
+Description=Emulador local de AWS MiniStack
 After=network-online.target
 
 [Service]

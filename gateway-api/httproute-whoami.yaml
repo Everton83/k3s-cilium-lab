@@ -4,11 +4,11 @@ metadata:
   name: whoami
   namespace: default
 spec:
-  # Explicit hostname is required: with none, this route attaches to and
-  # matches on EVERY listener on my-gateway (a Gateway-wide catch-all) since
-  # parentRefs below has no sectionName either — it hijacked ArgoCD's own
-  # hostname on the https-argocd listener until this was added. See
-  # ../README.md's sequencing rules for the same gotcha stated generally.
+  # Hostname explícito é obrigatório: sem ele, esta rota se anexa e casa com
+  # TODO listener do my-gateway (um catch-all pro Gateway inteiro), já que o
+  # parentRefs abaixo também não tem sectionName — isso sequestrou o próprio
+  # hostname do ArgoCD no listener https-argocd até isso ser adicionado (ver
+  # o log de incidentes em ../README.md).
   hostnames:
     - whoami.192.168.3.200.nip.io
   parentRefs:

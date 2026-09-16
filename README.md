@@ -8,7 +8,7 @@ mesma stack do zero, em qualquer desktop ou servidor, entendendo não só
 restrição real de hardware ou de um incidente real, não de preferência
 estética.
 
-Referência complementar: [Batata Lab Ledger](https://claude.ai/artifact/GCvjipTJcACJntfo2QXs9d)
+Referência complementar: [página de acompanhamento do projeto](https://claude.ai/artifact/GCvjipTJcACJntfo2QXs9d)
 (o "diário de bordo" vivo do projeto, com o mesmo conteúdo em formato de
 página).
 
@@ -176,7 +176,7 @@ projeto de origem, se preferir aplicar declarativamente em vez de rodar
 cada chart manualmente — não incluído aqui pra manter este repositório
 autônomo.
 
-## Ledger de capacidade
+## Orçamento de capacidade
 
 Total corrente de *requests* de memória do lado Kubernetes contra o teto
 de 1536Mi do cgroup. Os limites somados passam disso — e isso é

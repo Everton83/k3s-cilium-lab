@@ -1,26 +1,27 @@
-# ArgoCD values for batata-server (192.168.3.200, k3s single-node)
+# Values do ArgoCD para o batata-server (192.168.3.200, k3s single-node)
 #
 # Repo:    helm repo add argo https://argoproj.github.io/argo-helm
-# Chart:   argo/argo-cd  10.9.0  (app version v3.5.2)
+# Chart:   argo/argo-cd  10.9.0  (versão do app v3.5.2)
 # Release: helm install argocd argo/argo-cd -n argocd --create-namespace -f values-batata.yaml
 #
-# Trimmed for a memory-constrained host (3.3Gi total RAM, shared with the
-# rest of the batata-server stack — see ../README.md):
-#   - dex, notifications and applicationset disabled (no SSO / notifications
-#     / ApplicationSets in use today — flip back to true if that changes)
-#   - resource requests/limits set well below chart defaults
+# Enxugado para um host com memória limitada (3.3Gi de RAM total,
+# compartilhado com o resto da stack do batata-server — ver ../README.md):
+#   - dex, notifications e applicationset desabilitados (sem SSO /
+#     notificações / ApplicationSets em uso hoje — reative se isso mudar)
+#   - requests/limits de recurso bem abaixo dos padrões do chart
 #
-# NOTE (2026-09-11): applicationSet.enabled: false did NOT stop the
-# argocd-applicationset-controller pod from being deployed on chart 10.9.0 —
-# it came up running anyway. Left as-is (low footprint), but worth checking
-# the chart's values.yaml/templates if that matters later.
+# NOTA (2026-09-11): applicationSet.enabled: false NÃO impediu o pod
+# argocd-applicationset-controller de ser implantado no chart 10.9.0 — ele
+# sobe de qualquer jeito. Deixado como está (footprint baixo), mas vale
+# checar o values.yaml/templates do chart se isso importar depois.
 #
-# Exposed via Gateway API at https://argocd.192.168.3.200.nip.io — TLS is
-# terminated at the Gateway (my-gateway/default, listener "https-argocd",
-# cert secret argocd/argocd-tls, self-signed), so server.insecure is set
-# below (same reasoning as the chart's own NOTES.txt: terminate SSL at your
-# ingress and let argocd-server speak plain HTTP behind it). See
-# ../gateway-api/ for the Gateway + HTTPRoute manifests this depends on.
+# Exposto via Gateway API em https://argocd.192.168.3.200.nip.io — o TLS é
+# terminado no Gateway (my-gateway/default, listener "https-argocd", secret
+# de certificado argocd/argocd-tls, self-signed), por isso server.insecure
+# está definido abaixo (mesmo raciocínio do próprio NOTES.txt do chart:
+# termine o SSL no seu ingress e deixe o argocd-server falar HTTP puro por
+# trás dele). Ver ../gateway-api/ para os manifests de Gateway + HTTPRoute
+# dos quais isso depende.
 
 configs:
   params:
@@ -34,10 +35,10 @@ notifications:
 
 applicationSet:
   enabled: false
-  # enabled:false above doesn't actually stop this controller from being
-  # deployed on chart 10.9.0 (see note above) — give it a resource ceiling
-  # too so it's accounted for in the host's memory budget instead of running
-  # unbounded.
+  # o enabled:false acima não impede de verdade esse controller de ser
+  # implantado no chart 10.9.0 (ver nota acima) — deu-se a ele um teto de
+  # recurso também, pra pelo menos ser contabilizado no orçamento de memória
+  # do host em vez de rodar sem limite.
   resources:
     requests:
       cpu: 15m
